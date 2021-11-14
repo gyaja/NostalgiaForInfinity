@@ -10,6 +10,8 @@ services:
     volumes:
       - "./user_data:/freqtrade/user_data"
     environment:
+      - PUID=998
+      - PGID=100
       - TZ=Europe/Budapest
       - PYTHONWARNINGS=d
     ports:

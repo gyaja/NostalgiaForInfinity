@@ -1,0 +1,114 @@
+{
+    "max_open_trades": 4,
+    "stake_currency": "BUSD",
+    "stake_amount": "unlimited",
+    "tradable_balance_ratio": 0.99,
+    "fiat_display_currency": "USD",
+    "dry_run": false,
+    "dry_run_wallet": 1000,
+    "cancel_open_orders_on_exit": false,
+    "unfilledtimeout": {
+        "buy": 10,
+        "unit": "minutes"
+    },
+    "order_types": {
+        "buy": "market",
+        "sell": "market",
+	"forcebuy": "market",
+        "forcesell": "market",
+        "stoploss": "market",
+        "stoploss_on_exchange": false
+    },
+
+    "bid_strategy": {
+        "price_side": "ask",
+        "ask_last_balance": 0.0,
+        "use_order_book": false,
+        "order_book_top": 1,
+        "check_depth_of_market": {
+            "enabled": false,
+            "bids_to_ask_delta": 1
+        }
+    },
+    "ask_strategy": {
+        "price_side": "bid",
+        "use_order_book": false,
+        "order_book_min": 1,
+        "order_book_max": 1,
+        "sell_profit_only": false,
+        "ignore_roi_if_buy_signal": true
+    },
+    "exchange": {
+        "name": "binance",
+        "key": "qg5S3f8nalRbTZAssz6wdsBFFRRoXpFtEQogzET7WiNEGoBmF5pqBErtsSBvxYyo",
+        "secret": "FDXTJp81SYFjqVL7gRXXogNP7P8zANDoEpurKC9jZrkFGqcXIjzxqJEvjl1Hv8vP",
+        "ccxt_config": {"enableRateLimit": true},
+        "ccxt_async_config": {
+            "enableRateLimit": true,
+            "rateLimit": 100
+        },
+        "pair_whitelist": [
+        ],
+        "pair_blacklist": [
+        // Exchange
+        "(BNB)/.*",
+        // Leverage
+        ".*(_PREMIUM|BEAR|BULL|DOWN|HALF|HEDGE|UP|[1235][SL])/.*",
+        // Fiat
+        "(AUD|BRZ|CAD|CHF|EUR|GBP|HKD|IDRT|JPY|NGN|RUB|SGD|TRY|UAH|USD|ZAR)/.*",
+        // Stable
+        "(BUSD|CUSDT|DAI|PAXG|SUSD|TUSD|USDC|USDP|USDT|VAI)/.*",
+        // FAN
+        "(ACM|AFA|ALA|ALL|APL|ASR|ATM|BAR|CAI|CITY|FOR|GAL|GOZ|IBFK|JUV|LAZIO|LEG|LOCK-1|NAVI|NMR|NOV|OG|PFL|PORTO|PSG|ROUSH|STV|TH|TRA|UCH|UFC|YBO)/.*",
+        // Others
+        "(CHZ|CTXC|HBAR|NMR|SLP|XVS|ONG|ARDR)/.*"
+       ]
+    },
+    "pairlists": [
+        {
+                        "method": "VolumePairList",
+                        "number_assets": 80,
+                        "sort_key": "quoteVolume",
+                        "refresh_period": 1800
+                },
+                {"method": "AgeFilter", "min_days_listed": 14},
+                {"method": "SpreadFilter", "max_spread_ratio": 0.005},
+                {
+                        "method": "RangeStabilityFilter",
+                        "lookback_days": 3,
+                        "min_rate_of_change": 0.05,
+                        "refresh_period": 1800
+                },
+                {
+                        "method": "VolatilityFilter",
+                        "lookback_days": 3,
+                        "min_volatility": 0.02,
+                        "max_volatility": 0.75,
+                        "refresh_period": 43200
+                },
+        {"method": "ShuffleFilter"}
+    ],
+
+    "telegram": {
+        "enabled": true,
+        "token": "1706194653:AAGnVCJa9lizF5ATB22Z-dFcZJos93irlSU",
+        "chat_id": "1769755104"
+    },
+    "api_server": {
+        "enabled": true,
+        "listen_ip_address": "0.0.0.0",
+        "listen_port": 8080,
+        "verbosity": "error",
+        "enable_openapi": false,
+        "jwt_secret_key": "freqtrade",
+        "CORS_origins": [],
+        "username": "freqtrader",
+        "password": "Kolbice89"
+    },
+    "bot_name": "freqtrade-binance",
+    "initial_state": "running",
+    "forcebuy_enable": false,
+    "internals": {
+        "process_throttle_secs": 3
+    }
+}

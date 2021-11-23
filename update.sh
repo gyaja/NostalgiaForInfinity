@@ -13,8 +13,10 @@ if [[ $GITRESPONSE != $UPDATED ]]; then
 
         if [[ $GITMESSAGE != "" ]]; then
                 python3 /root/NostalgiaForInfinity/notify.py "$GITMESSAGE"
+                python3 /root/NostalgiaForInfinity/notify_vol.py "$GITMESSAGE"
         else
                 python3 /root/NostalgiaForInfinity/notify.py
+                python3 /root/NostalgiaForInfinity/notify_vol.py
         fi
 
 fi

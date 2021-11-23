@@ -22,3 +22,24 @@ services:
       --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
       --config /freqtrade/user_data/config.json
       --strategy NostalgiaForInfinityX
+  freqtrade_dryrun:
+    build:
+      context: .
+      dockerfile: "./docker/Dockerfile.custom"
+    restart: unless-stopped
+    container_name: freqtrade-dryrun
+    volumes:
+      - "./user_data:/freqtrade/user_data"
+    environment:
+      - PUID=998
+      - PGID=100
+      - TZ=Europe/Budapest
+      - PYTHONWARNINGS=d
+    ports:
+      - 8390:8080
+    command: >
+      trade
+      --logfile /freqtrade/user_data/logs_vol/freqtrade.log
+      --db-url sqlite:////freqtrade/user_data/tradesv3_vol.sqlite
+      --config /freqtrade/user_data/config_vol.json
+      --strategy NostalgiaForInfinityX

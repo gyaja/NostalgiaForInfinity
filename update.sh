@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /root/NostalgiaForInfinity
+cd /root/iterativ/NostalgiaForInfinity
 
 GITRESPONSE=`git pull`
 UPDATED='Already up to date.'
@@ -15,8 +15,8 @@ if [[ $GITRESPONSE != $UPDATED ]]; then
                 python3 /root/NostalgiaForInfinity/notify.py "$GITMESSAGE"
                 python3 /root/NostalgiaForInfinity/notify_vol.py "$GITMESSAGE"
         else
-                python3 /root/NostalgiaForInfinity/notify.py
-                python3 /root/NostalgiaForInfinity/notify_vol.py
+                python3 /root/NostalgiaForInfinity/notify.py "$GITMESSAGE"
+                python3 /root/NostalgiaForInfinity/notify_vol.py "$GITMESSAGE"
         fi
 
 fi

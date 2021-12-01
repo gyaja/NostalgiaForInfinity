@@ -580,7 +580,7 @@ class NostalgiaForInfinityX(IStrategy):
             "safe_pump_6h_threshold"    : 0.5,
             "safe_pump_12h_threshold"   : None,
             "safe_pump_24h_threshold"   : None,
-            "safe_pump_36h_threshold"   : None,
+            "safe_pump_36h_threshold"   : 1.8,
             "safe_pump_48h_threshold"   : None,
             "btc_1h_not_downtrend"      : False,
             "close_over_pivot_type"     : "none", # pivot, sup1, sup2, sup3, res1, res2, res3
@@ -1613,9 +1613,9 @@ class NostalgiaForInfinityX(IStrategy):
             "safe_dips_threshold_2"     : 0.09,
             "safe_dips_threshold_12"    : None,
             "safe_dips_threshold_144"   : None,
-            "safe_pump_6h_threshold"    : 0.5,
+            "safe_pump_6h_threshold"    : None,
             "safe_pump_12h_threshold"   : None,
-            "safe_pump_24h_threshold"   : None,
+            "safe_pump_24h_threshold"   : 0.6,
             "safe_pump_36h_threshold"   : None,
             "safe_pump_48h_threshold"   : 1.4,
             "btc_1h_not_downtrend"      : False,
@@ -2205,26 +2205,27 @@ class NostalgiaForInfinityX(IStrategy):
 
     def sell_stoploss(self, current_profit: float, max_profit: float, max_loss: float, last_candle, previous_candle_1, trade: 'Trade', current_time: 'datetime') -> tuple:
         if (
-                (last_candle['sma_200_dec_20'])
+                (current_profit < -0.0)
+                and (last_candle['close'] < last_candle['ema_200'])
+                and (last_candle['bb20_width'] < 0.044)
+                and (last_candle['close'] > (last_candle['bb20_2_mid_1h'] * 0.954))
+                and (last_candle['volume_mean_12'] < (last_candle['volume_mean_24'] * 2.4))
+                and (last_candle['sma_200_dec_20'])
+                and (last_candle['sma_200_dec_24'])
+                and (last_candle['sma_200_dec_20_15m'])
+                and (last_candle['sma_200_dec_20_1h'])
                 and (last_candle['ema_vwma_osc_32'] < -0.0)
                 and (last_candle['ema_vwma_osc_64'] < -0.0)
                 and (last_candle['ema_vwma_osc_96'] < -0.0)
                 and (last_candle['cmf'] < -0.0)
+                and (last_candle['cmf_15m'] < -0.0)
                 and (last_candle['cmf_1h'] < -0.0)
                 and (current_time - timedelta(minutes=2880) > trade.open_date_utc)
-        ):
-            if (-0.12 <= current_profit < -0.0):
-                if (last_candle['close'] < last_candle['atr_high_thresh_1']) and (previous_candle_1['close'] > previous_candle_1['atr_high_thresh_1']):
-                    return True, 'sell_stoploss_atr_1'
-            elif (-0.16 <= current_profit < -0.12):
-                if (last_candle['close'] < last_candle['atr_high_thresh_2']) and (previous_candle_1['close'] > previous_candle_1['atr_high_thresh_2']):
-                    return True, 'sell_stoploss_atr_2'
-            elif (-0.2 <= current_profit < -0.16):
-                if (last_candle['close'] < last_candle['atr_high_thresh_3']) and (previous_candle_1['close'] > previous_candle_1['atr_high_thresh_3']):
-                    return True, 'sell_stoploss_atr_3'
+            ):
+            if (-0.2 <= current_profit < -0.14):
+                return True, 'sell_stoploss_1'
             elif (current_profit < -0.2):
-                if (last_candle['close'] < last_candle['atr_high_thresh_4']) and (previous_candle_1['close'] > previous_candle_1['atr_high_thresh_4']):
-                    return True, 'sell_stoploss_atr_4'
+                return True, 'sell_stoploss_2'
 
         return False, None
 
@@ -4683,6 +4684,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_o_1_21'
                 elif (last_candle['rsi_14'] < 44.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_o_1_22'
+                elif (last_candle['rsi_14'] < 43.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 30.0):
+                    return True, 'sell_profit_d_o_1_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 66.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_o_1_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 65.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_o_1_25'
             elif 0.03 > current_profit >= 0.02:
                 if (last_candle['rsi_14'] < 36.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.05) and (last_candle['rsi_14_1h'] < 48.0) and (last_candle['cti'] > 0.5):
                     return True, 'sell_profit_d_o_2_1'
@@ -4728,6 +4735,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_o_2_21'
                 elif (last_candle['rsi_14'] < 45.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_o_2_22'
+                elif (last_candle['rsi_14'] < 44.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 30.0):
+                    return True, 'sell_profit_d_o_2_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 66.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_o_2_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 65.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_o_2_25'
             elif 0.04 > current_profit >= 0.03:
                 if (last_candle['rsi_14'] < 40.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.0) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['cti'] > 0.4):
                     return True, 'sell_profit_d_o_3_1'
@@ -4773,6 +4786,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_o_3_21'
                 elif (last_candle['rsi_14'] < 46.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_o_3_22'
+                elif (last_candle['rsi_14'] < 45.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 32.0):
+                    return True, 'sell_profit_d_o_3_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 66.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_o_3_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 65.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_o_3_25'
             elif 0.05 > current_profit >= 0.04:
                 if (last_candle['rsi_14'] < 44.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < 0.05) and (last_candle['rsi_14_1h'] < 55.0) and (last_candle['cti'] > 0.3):
                     return True, 'sell_profit_d_o_4_1'
@@ -4818,6 +4837,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_o_4_21'
                 elif (last_candle['rsi_14'] < 47.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_o_4_22'
+                elif (last_candle['rsi_14'] < 46.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 32.0):
+                    return True, 'sell_profit_d_o_4_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 66.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_o_4_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 65.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_o_4_25'
             elif 0.06 > current_profit >= 0.05:
                 if (last_candle['rsi_14'] < 48.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.0) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['cti'] > 0.4):
                     return True, 'sell_profit_d_o_5_1'
@@ -4863,6 +4888,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_o_5_21'
                 elif (last_candle['rsi_14'] < 48.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_o_5_22'
+                elif (last_candle['rsi_14'] < 47.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_o_5_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 66.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_o_5_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 65.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_o_5_25'
             elif 0.07 > current_profit >= 0.06:
                 if (last_candle['rsi_14'] < 46.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.05) and (last_candle['rsi_14_1h'] < 48.0) and (last_candle['cti'] > 0.5):
                     return True, 'sell_profit_d_o_6_1'
@@ -4908,6 +4939,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_o_6_21'
                 elif (last_candle['rsi_14'] < 47.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_o_6_22'
+                elif (last_candle['rsi_14'] < 46.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_o_6_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 67.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_o_6_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 66.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_o_6_25'
             elif 0.08 > current_profit >= 0.07:
                 if (last_candle['rsi_14'] < 44.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.1) and (last_candle['rsi_14_1h'] < 46.0) and (last_candle['cti'] > 0.5):
                     return True, 'sell_profit_d_o_7_1'
@@ -4953,6 +4990,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_o_7_21'
                 elif (last_candle['rsi_14'] < 46.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_o_7_22'
+                elif (last_candle['rsi_14'] < 45.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_o_7_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 68.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_o_7_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 67.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_o_7_25'
             elif 0.09 > current_profit >= 0.08:
                 if (last_candle['rsi_14'] < 42.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.1) and (last_candle['rsi_14_1h'] < 44.0) and (last_candle['cti_1h'] > 0.5):
                     return True, 'sell_profit_d_o_8_1'
@@ -4998,6 +5041,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_o_8_21'
                 elif (last_candle['rsi_14'] < 45.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_o_8_22'
+                elif (last_candle['rsi_14'] < 44.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_o_8_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 69.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_o_8_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 68.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_o_8_25'
             elif 0.1 > current_profit >= 0.09:
                 if (last_candle['rsi_14'] < 38.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.1) and (last_candle['rsi_14_1h'] < 42.0) and (last_candle['cti'] > 0.5):
                     return True, 'sell_profit_d_o_9_1'
@@ -5043,6 +5092,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_o_9_21'
                 elif (last_candle['rsi_14'] < 44.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_o_9_22'
+                elif (last_candle['rsi_14'] < 43.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_o_9_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 70.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_o_9_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 69.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_o_9_25'
             elif 0.12 > current_profit >= 0.1:
                 if (last_candle['rsi_14'] < 36.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.1) and (last_candle['rsi_14_1h'] < 38.0) and (last_candle['cti'] > 0.5):
                     return True, 'sell_profit_d_o_10_1'
@@ -5088,6 +5143,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_o_10_21'
                 elif (last_candle['rsi_14'] < 43.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_o_10_22'
+                elif (last_candle['rsi_14'] < 42.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_o_10_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 71.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_o_10_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 70.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_o_10_25'
             elif 0.2 > current_profit >= 0.12:
                 if (last_candle['rsi_14'] < 34.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.2) and (last_candle['rsi_14_1h'] < 35.0) and (last_candle['cti'] > 0.5):
                     return True, 'sell_profit_d_o_11_1'
@@ -5133,6 +5194,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_o_11_21'
                 elif (last_candle['rsi_14'] < 42.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_o_11_22'
+                elif (last_candle['rsi_14'] < 41.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_o_11_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 72.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_o_11_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 71.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_o_11_25'
             elif current_profit >= 0.2:
                 if (last_candle['rsi_14'] < 34.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.2) and (last_candle['rsi_14_1h'] < 34.0) and (last_candle['cti'] > 0.5):
                     return True, 'sell_profit_d_o_12_1'
@@ -5178,6 +5245,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_o_12_21'
                 elif (last_candle['rsi_14'] < 41.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_o_12_22'
+                elif (last_candle['rsi_14'] < 40.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_o_12_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 73.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_o_12_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 72.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_o_12_25'
         else:
             if 0.02 > current_profit >= 0.01:
                 if (last_candle['rsi_14'] < 35.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.05) and (last_candle['rsi_14_1h'] < 36.0) and (last_candle['cti_1h'] < -0.85):
@@ -5224,6 +5297,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_u_1_21'
                 elif (last_candle['rsi_14'] < 45.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_u_1_22'
+                elif (last_candle['rsi_14'] < 44.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 30.0):
+                    return True, 'sell_profit_d_u_1_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 64.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_u_1_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 62.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_u_1_25'
             elif 0.03 > current_profit >= 0.02:
                 if (last_candle['rsi_14'] < 37.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.05) and (last_candle['rsi_14_1h'] < 39.0) and (last_candle['cti_1h'] < -0.85):
                     return True, 'sell_profit_d_u_2_1'
@@ -5269,6 +5348,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_u_2_21'
                 elif (last_candle['rsi_14'] < 46.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_u_2_22'
+                elif (last_candle['rsi_14'] < 45.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 30.0):
+                    return True, 'sell_profit_d_u_2_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 64.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_u_2_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 62.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_u_2_25'
             elif 0.04 > current_profit >= 0.03:
                 if (last_candle['rsi_14'] < 41.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.05) and (last_candle['rsi_14_1h'] < 39.5) and (last_candle['cti_1h'] < -0.85):
                     return True, 'sell_profit_d_u_3_1'
@@ -5314,6 +5399,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_u_3_21'
                 elif (last_candle['rsi_14'] < 47.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_u_3_22'
+                elif (last_candle['rsi_14'] < 46.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 32.0):
+                    return True, 'sell_profit_d_u_3_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 64.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_u_3_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 62.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_u_3_25'
             elif 0.05 > current_profit >= 0.04:
                 if (last_candle['rsi_14'] < 45.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.05) and (last_candle['rsi_14_1h'] < 40.0) and (last_candle['cti_1h'] < -0.85):
                     return True, 'sell_profit_d_u_4_1'
@@ -5359,6 +5450,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_u_4_21'
                 elif (last_candle['rsi_14'] < 48.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_u_4_22'
+                elif (last_candle['rsi_14'] < 47.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 32.0):
+                    return True, 'sell_profit_d_u_4_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 64.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_u_4_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 62.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_u_4_25'
             elif 0.06 > current_profit >= 0.05:
                 if (last_candle['rsi_14'] < 49.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.05) and (last_candle['rsi_14_1h'] < 39.5) and (last_candle['cti_1h'] < -0.85):
                     return True, 'sell_profit_d_u_5_1'
@@ -5404,6 +5501,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_u_5_21'
                 elif (last_candle['rsi_14'] < 49.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_u_5_22'
+                elif (last_candle['rsi_14'] < 48.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_u_5_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 64.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_u_5_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 62.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_u_5_25'
             elif 0.07 > current_profit >= 0.06:
                 if (last_candle['rsi_14'] < 47.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.05) and (last_candle['rsi_14_1h'] < 39.0) and (last_candle['cti_1h'] < -0.85):
                     return True, 'sell_profit_d_u_6_1'
@@ -5449,6 +5552,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_u_6_21'
                 elif (last_candle['rsi_14'] < 48.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_u_6_22'
+                elif (last_candle['rsi_14'] < 47.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_u_6_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 65.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_u_6_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 63.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_u_6_25'
             elif 0.08 > current_profit >= 0.07:
                 if (last_candle['rsi_14'] < 45.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.05) and (last_candle['rsi_14_1h'] < 38.5) and (last_candle['cti_1h'] < -0.85):
                     return True, 'sell_profit_d_u_7_1'
@@ -5494,6 +5603,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_u_7_21'
                 elif (last_candle['rsi_14'] < 47.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_u_7_22'
+                elif (last_candle['rsi_14'] < 46.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_u_7_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 66.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_u_7_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 64.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_u_7_25'
             elif 0.09 > current_profit >= 0.08:
                 if (last_candle['rsi_14'] < 43.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.05) and (last_candle['rsi_14_1h'] < 38.0) and (last_candle['cti_1h'] < -0.85):
                     return True, 'sell_profit_d_u_8_1'
@@ -5539,6 +5654,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_u_8_21'
                 elif (last_candle['rsi_14'] < 46.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_u_8_22'
+                elif (last_candle['rsi_14'] < 45.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_u_8_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 67.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_u_8_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 65.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_u_8_25'
             elif 0.1 > current_profit >= 0.09:
                 if (last_candle['rsi_14'] < 39.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.05) and (last_candle['rsi_14_1h'] < 37.0) and (last_candle['cti_1h'] < -0.85):
                     return True, 'sell_profit_d_u_9_1'
@@ -5584,6 +5705,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_u_9_21'
                 elif (last_candle['rsi_14'] < 45.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_u_9_22'
+                elif (last_candle['rsi_14'] < 44.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_u_9_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 68.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_u_9_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 66.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_u_9_25'
             elif 0.12 > current_profit >= 0.1:
                 if (last_candle['rsi_14'] < 37.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.05) and (last_candle['rsi_14_1h'] < 36.0) and (last_candle['cti_1h'] < -0.85):
                     return True, 'sell_profit_d_u_10_1'
@@ -5629,6 +5756,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_u_10_21'
                 elif (last_candle['rsi_14'] < 44.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_u_10_22'
+                elif (last_candle['rsi_14'] < 43.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_u_10_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 69.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_u_10_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 67.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_u_10_25'
             elif 0.2 > current_profit >= 0.12:
                 if (last_candle['rsi_14'] < 35.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.05) and (last_candle['rsi_14_1h'] < 35.0) and (last_candle['cti_1h'] < -0.85):
                     return True, 'sell_profit_d_u_11_1'
@@ -5674,6 +5807,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_u_11_21'
                 elif (last_candle['rsi_14'] < 43.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_u_11_22'
+                elif (last_candle['rsi_14'] < 42.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_u_11_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 70.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_u_11_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 68.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_u_11_25'
             elif current_profit >= 0.2:
                 if (last_candle['rsi_14'] < 33.0) and (last_candle['sma_200_dec_20']) and (last_candle['cmf'] < -0.05) and (last_candle['rsi_14_1h'] < 34.0) and (last_candle['cti_1h'] < -0.85):
                     return True, 'sell_profit_d_u_12_1'
@@ -5719,6 +5858,12 @@ class NostalgiaForInfinityX(IStrategy):
                     return True, 'sell_profit_d_u_12_21'
                 elif (last_candle['rsi_14'] < 42.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['cmf'] < -0.0) and (last_candle['cmf_15m'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
                     return True, 'sell_profit_d_u_12_22'
+                elif (last_candle['rsi_14'] < 41.0) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['cmf_1h'] < -0.0) and (last_candle['rsi_14_1h'] < 35.0):
+                    return True, 'sell_profit_d_u_12_23'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['rsi_14'] > 71.0) and (last_candle['cti'] > 0.85) and (last_candle['sma_200_dec_20']) and (last_candle['sma_200_dec_20_15m']) and (last_candle['sma_200_dec_20_1h']) and (last_candle['rsi_14_1h'] < 40.0):
+                    return True, 'sell_profit_d_u_12_24'
+                elif (last_candle['r_14'] > -10.0) and (last_candle['r_32'] > -10.0) and (last_candle['rsi_14'] > 69.0) and (last_candle['cti'] > 0.8) and (last_candle['sma_200_dec_20']) and (last_candle['cmf_1h'] < -0.1) and (last_candle['rsi_14_1h'] < 50.0) and (last_candle['r_96_15m'] < -75.0):
+                    return True, 'sell_profit_d_u_12_25'
 
         return False, None
 
@@ -6305,6 +6450,45 @@ class NostalgiaForInfinityX(IStrategy):
             elif (current_profit >= 0.2):
                 if (last_candle['rsi_14'] < 34.0) and (last_candle['r_480_1h'] > -50.0) and (last_candle['rsi_14_1h'] > 60.0):
                     return True, 'sell_profit_pv_3_12_1'
+
+        if (last_candle['close'] > (last_candle['res3_1d'] * 1.8)):
+            if (0.02 > current_profit >= 0.01):
+                if (last_candle['r_480'] > -30.0) and (last_candle['rsi_14'] < 44.0) and (last_candle['rsi_14_1h'] > 60.0) and (last_candle['r_480_1h'] > -30.0):
+                    return True, 'sell_profit_pv_4_1_1'
+            elif (0.03 > current_profit >= 0.02):
+                if (last_candle['r_480'] > -30.0) and (last_candle['rsi_14'] < 45.0) and (last_candle['rsi_14_1h'] > 60.0) and (last_candle['r_480_1h'] > -30.0):
+                    return True, 'sell_profit_pv_4_2_1'
+            elif (0.04 > current_profit >= 0.03):
+                if (last_candle['r_480'] > -30.0) and (last_candle['rsi_14'] < 46.0) and (last_candle['rsi_14_1h'] > 60.0) and (last_candle['r_480_1h'] > -30.0):
+                    return True, 'sell_profit_pv_4_3_1'
+            elif (0.05 > current_profit >= 0.04):
+                if (last_candle['r_480'] > -30.0) and (last_candle['rsi_14'] < 47.0) and (last_candle['rsi_14_1h'] > 60.0) and (last_candle['r_480_1h'] > -30.0):
+                    return True, 'sell_profit_pv_4_4_1'
+            elif (0.06 > current_profit >= 0.05):
+                if (last_candle['r_480'] > -30.0) and (last_candle['rsi_14'] < 48.0) and (last_candle['rsi_14_1h'] > 60.0) and (last_candle['r_480_1h'] > -30.0):
+                    return True, 'sell_profit_pv_4_5_1'
+            elif (0.07 > current_profit >= 0.06):
+                if (last_candle['r_480'] > -30.0) and (last_candle['rsi_14'] < 47.0) and (last_candle['rsi_14_1h'] > 60.0) and (last_candle['r_480_1h'] > -30.0):
+                    return True, 'sell_profit_pv_4_6_1'
+            elif (0.08 > current_profit >= 0.07):
+                if (last_candle['r_480'] > -30.0) and (last_candle['rsi_14'] < 46.0) and (last_candle['rsi_14_1h'] > 60.0) and (last_candle['r_480_1h'] > -30.0):
+                    return True, 'sell_profit_pv_4_7_1'
+            elif (0.09 > current_profit >= 0.08):
+                if (last_candle['r_480'] > -30.0) and (last_candle['rsi_14'] < 45.0) and (last_candle['rsi_14_1h'] > 60.0) and (last_candle['r_480_1h'] > -30.0):
+                    return True, 'sell_profit_pv_4_8_1'
+            elif (0.1 > current_profit >= 0.09):
+                if (last_candle['r_480'] > -30.0) and (last_candle['rsi_14'] < 44.0) and (last_candle['rsi_14_1h'] > 60.0) and (last_candle['r_480_1h'] > -30.0):
+                    return True, 'sell_profit_pv_4_9_1'
+            elif (0.12 > current_profit >= 0.1):
+                if (last_candle['r_480'] > -30.0) and (last_candle['rsi_14'] < 43.0) and (last_candle['rsi_14_1h'] > 60.0) and (last_candle['r_480_1h'] > -30.0):
+                    return True, 'sell_profit_pv_4_10_1'
+            elif (0.2 > current_profit >= 0.12):
+                if (last_candle['r_480'] > -30.0) and (last_candle['rsi_14'] < 42.0) and (last_candle['rsi_14_1h'] > 60.0) and (last_candle['r_480_1h'] > -30.0):
+                    return True, 'sell_profit_pv_4_11_1'
+            elif (current_profit >= 0.2):
+                if (last_candle['r_480'] > -30.0) and (last_candle['rsi_14'] < 41.0) and (last_candle['rsi_14_1h'] > 60.0) and (last_candle['r_480_1h'] > -30.0):
+                    return True, 'sell_profit_pv_4_12_1'
+
         return False, None
 
     def sell_long_mode(self, current_profit: float, max_profit:float, max_loss:float, last_candle, previous_candle_1, previous_candle_2, previous_candle_3, previous_candle_4, previous_candle_5, trade: 'Trade', current_time: 'datetime', buy_tag) -> tuple:
@@ -7150,7 +7334,7 @@ class NostalgiaForInfinityX(IStrategy):
                     item_buy_logic.append(dataframe['rsi_14'] < 28.5)
                     item_buy_logic.append(dataframe['cti'] < -0.75)
                     item_buy_logic.append(dataframe['rsi_14_1h'] < 80.0)
-                    item_buy_logic.append(dataframe['cti_1h'] < 0.62)
+                    item_buy_logic.append(dataframe['cti_1h'] < 0.4)
 
                 # Condition #16 - Semi swing. Cross above.
                 elif index == 16:
@@ -7226,6 +7410,7 @@ class NostalgiaForInfinityX(IStrategy):
                     item_buy_logic.append(dataframe['cti'] < -0.84)
                     item_buy_logic.append(dataframe['r_14'] < -97.0)
                     item_buy_logic.append(dataframe['r_96'] < -85.0)
+                    item_buy_logic.append(dataframe['cti_1h'] < 0.8)
 
                 # Condition #22 - Swing. Uptrend. Bounce from daily support level
                 elif index == 22:
@@ -7561,8 +7746,8 @@ class NostalgiaForInfinityX(IStrategy):
                     item_buy_logic.append(dataframe['ema_26_15m'] > dataframe['ema_12_15m'])
                     item_buy_logic.append((dataframe['ema_26_15m'] - dataframe['ema_12_15m']) > (dataframe['open_15m'] * 0.032))
                     item_buy_logic.append((dataframe['ema_26_15m'].shift(3) - dataframe['ema_12_15m'].shift(3)) > (dataframe['open_15m'] / 100))
-                    item_buy_logic.append(dataframe['close_15m'] < dataframe['ema_20_15m'] * 0.916)
-                    item_buy_logic.append(dataframe['rsi_14_15m'] < 32.5)
+                    item_buy_logic.append(dataframe['close_15m'] < dataframe['ema_20_15m'] * 0.928)
+                    item_buy_logic.append(dataframe['rsi_14_15m'] < 28.0)
                     item_buy_logic.append(dataframe['crsi_15m'] > 18.0)
 
                 # Condition #50 - 15m. Semi swing. Deep local dip. Mild 15m uptrend.
@@ -7669,7 +7854,7 @@ class NostalgiaForInfinityX(IStrategy):
                     item_buy_logic.append(dataframe['rmi_17'] < 49.0)
                     item_buy_logic.append(dataframe['cci_25'] < -120.0)
                     item_buy_logic.append(dataframe['srsi_fk'] < 32.0)
-                    item_buy_logic.append(dataframe['bb20_delta'] > 0.025)
+                    item_buy_logic.append(dataframe['bb20_delta'] > 0.026)
                     item_buy_logic.append(dataframe['bb20_width'] > 0.095)
                     item_buy_logic.append(dataframe['close_delta'] > dataframe['close'] * 10.0 / 1000.0 )
                     item_buy_logic.append(dataframe['close'] < (dataframe['bb20_3_low'] * 0.996))
@@ -7713,7 +7898,7 @@ class NostalgiaForInfinityX(IStrategy):
         if ((rate > dataframe['close'])):
             slippage = ((rate / dataframe['close']) - 1.0)
 
-            if slippage < 0.02:
+            if slippage < 0.028:
                 return True
             else:
                 return False
